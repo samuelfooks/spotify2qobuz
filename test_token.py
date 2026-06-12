@@ -6,16 +6,13 @@ Quick script to test if your Qobuz token is still valid.
 from src.qobuz_client import QobuzClient
 from src.utils.credentials import parse_credentials
 
+
 def test_token():
     print("Testing Qobuz token validity...")
     print()
     
     try:
-        # Load credentials
-        with open('credentials.md', 'r') as f:
-            content = f.read()
-        
-        creds = parse_credentials(content)
+        creds = parse_credentials('credentials.md')
         token = creds.get('QOBUZ_USER_AUTH_TOKEN')
         
         if not token:

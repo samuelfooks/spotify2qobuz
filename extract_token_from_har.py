@@ -1,8 +1,10 @@
 import json
 import sys
 
+har_path = sys.argv[1] if len(sys.argv) > 1 else 'play.qobuz.com.har'
+
 # Read HAR file
-with open('/Users/lievencardoen/Downloads/www.qobuz.com.har', 'r') as f:
+with open(har_path, 'r') as f:
     har_data = json.load(f)
 
 print("=" * 60)

@@ -324,6 +324,73 @@ class SyncService:
             self.report.add_error(f"Sync failed: {e}")
             raise
 
+    def sync_single_playlist(
+        self,
+        playlist_id: str = None,
+        playlist_name: str = None,
+        dry_run: bool = False,
+        update_existing: bool = True
+    ) -> bool:
+        """
+        Sync one Spotify playlist to Qobuz by Spotify playlist ID or exact name.
+
+        Args:
+            playlist_id: Spotify playlist ID to sync
+            playlist_name: Exact Spotify playlist name to sync
+            dry_run: If True, don't create playlists or add tracks
+            update_existing: If True, update existing playlists instead of creating duplicates
+
+        Returns:
+            True if the playlist synced successfully, False otherwise
+
+        Raises:
+            ValueError: If no playlist, or multiple playlists, match the selector
+        """
+        if not playlist_id and not playlist_name:
+            raise ValueError("Provide playlist_id or playlist_name")
+
+        self.logger.info("Starting single playlist synchronization...")
+
+        if dry_run:
+            self.logger.info("DRY RUN MODE - No changes will be made")
+
+        if update_existing:
+            self.logger.info("UPDATE MODE - Will add new tracks to existing playlists")
+        else:
+            self.logger.info("CREATE MODE - Will create new playlists even if they exist")
+
+        playlists = self.spotify_client.list_playlists()
+
+        if playlist_id:
+            matches = [playlist for playlist in playlists if playlist['id'] == playlist_id]
+            selector = f"id '{playlist_id}'"
+        else:
+            matches = [playlist for playlist in playlists if playlist['name'] == playlist_name]
+            selector = f"name '{playlist_name}'"
+
+        if not matches:
+            raise ValueError(f"No Spotify playlist found with {selector}")
+
+        if len(matches) > 1:
+            raise ValueError(
+                f"Found {len(matches)} Spotify playlists with {selector}. "
+                "Use --playlist-id to choose one."
+            )
+
+        result = self.sync_playlist(
+            matches[0],
+            dry_run=dry_run,
+            update_existing=update_existing
+        )
+
+        self.report.finalize()
+
+        report_path = f"sync_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        self.report.save_to_file(report_path)
+        self.logger.info(f"Report saved to: {report_path}")
+
+        return result
+
 
 def main():
     """Main entry point for CLI."""
@@ -356,6 +423,19 @@ def main():
         default=None,
         help='Path to log file (optional)'
     )
+    playlist_group = parser.add_mutually_exclusive_group()
+    playlist_group.add_argument(
+        '--playlist-id',
+        type=str,
+        default=None,
+        help='Sync only the Spotify playlist with this ID'
+    )
+    playlist_group.add_argument(
+        '--playlist-name',
+        type=str,
+        default=None,
+        help='Sync only the Spotify playlist with this exact name'
+    )
     
     args = parser.parse_args()
     dry_run = args.dry_run == 'true'
@@ -373,7 +453,18 @@ def main():
         service.authenticate_clients(credentials)
         
         # Sync playlists
-        service.sync_all_playlists(dry_run=dry_run, update_existing=update_existing)
+        if args.playlist_id or args.playlist_name:
+            success = service.sync_single_playlist(
+                playlist_id=args.playlist_id,
+                playlist_name=args.playlist_name,
+                dry_run=dry_run,
+                update_existing=update_existing
+            )
+            if not success:
+                print("\nPlaylist sync completed with errors")
+                sys.exit(1)
+        else:
+            service.sync_all_playlists(dry_run=dry_run, update_existing=update_existing)
         
         print("\nSync completed successfully!")
         sys.exit(0)

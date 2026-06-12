@@ -716,6 +716,84 @@ class TestMain:
         
         assert exc_info.value.code == 0
         mock_service.sync_all_playlists.assert_called_once_with(dry_run=False, update_existing=True)
+
+    @patch('src.sync_service.SyncService')
+    @patch('sys.argv', ['sync_service.py', '--playlist-id', 'spotify_playlist_id', '--dry-run', 'true'])
+    def test_main_single_playlist_by_id(self, mock_service_class):
+        """Test main syncing one playlist by Spotify playlist ID."""
+        from src.sync_service import main
+
+        mock_service = Mock()
+        mock_service.sync_single_playlist.return_value = True
+        mock_service_class.return_value = mock_service
+        mock_service.load_credentials.return_value = {
+            'SPOTIFY_CLIENT_ID': 'test',
+            'SPOTIFY_CLIENT_SECRET': 'test',
+            'SPOTIFY_REDIRECT_URI': 'http://localhost:8888',
+            'QOBUZ_USER_AUTH_TOKEN': 'test'
+        }
+
+        with pytest.raises(SystemExit) as exc_info:
+            main()
+
+        assert exc_info.value.code == 0
+        mock_service.sync_single_playlist.assert_called_once_with(
+            playlist_id='spotify_playlist_id',
+            playlist_name=None,
+            dry_run=True,
+            update_existing=True
+        )
+        mock_service.sync_all_playlists.assert_not_called()
+
+    @patch('src.sync_service.SyncService')
+    @patch('sys.argv', ['sync_service.py', '--playlist-name', 'Test Playlist'])
+    def test_main_single_playlist_by_name(self, mock_service_class):
+        """Test main syncing one playlist by exact Spotify playlist name."""
+        from src.sync_service import main
+
+        mock_service = Mock()
+        mock_service.sync_single_playlist.return_value = True
+        mock_service_class.return_value = mock_service
+        mock_service.load_credentials.return_value = {
+            'SPOTIFY_CLIENT_ID': 'test',
+            'SPOTIFY_CLIENT_SECRET': 'test',
+            'SPOTIFY_REDIRECT_URI': 'http://localhost:8888',
+            'QOBUZ_USER_AUTH_TOKEN': 'test'
+        }
+
+        with pytest.raises(SystemExit) as exc_info:
+            main()
+
+        assert exc_info.value.code == 0
+        mock_service.sync_single_playlist.assert_called_once_with(
+            playlist_id=None,
+            playlist_name='Test Playlist',
+            dry_run=False,
+            update_existing=True
+        )
+        mock_service.sync_all_playlists.assert_not_called()
+
+    @patch('src.sync_service.SyncService')
+    @patch('sys.argv', ['sync_service.py', '--playlist-id', 'spotify_playlist_id'])
+    def test_main_single_playlist_failure(self, mock_service_class):
+        """Test main exits non-zero when one playlist fails to sync."""
+        from src.sync_service import main
+
+        mock_service = Mock()
+        mock_service.sync_single_playlist.return_value = False
+        mock_service_class.return_value = mock_service
+        mock_service.load_credentials.return_value = {
+            'SPOTIFY_CLIENT_ID': 'test',
+            'SPOTIFY_CLIENT_SECRET': 'test',
+            'SPOTIFY_REDIRECT_URI': 'http://localhost:8888',
+            'QOBUZ_USER_AUTH_TOKEN': 'test'
+        }
+
+        with pytest.raises(SystemExit) as exc_info:
+            main()
+
+        assert exc_info.value.code == 1
+        mock_service.sync_all_playlists.assert_not_called()
     
     @patch('src.sync_service.SyncService')
     @patch('sys.argv', ['sync_service.py', '--credentials', 'custom.md', '--log-file', 'custom.log'])
