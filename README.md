@@ -105,7 +105,20 @@ python sync.py
 python -m src.sync_service
 ```
 
-### Sync Favorites (NEW!)
+### Sync One Playlist
+```bash
+# Sync one Spotify playlist by exact name
+python -m src.sync_service --playlist-name "Playlist Name"
+
+# Or sync by Spotify playlist ID when names are duplicated
+python -m src.sync_service --playlist-id 37i9dQZF1DXcBWIGoYBM5M
+```
+
+This uses the same duplicate prevention as the full playlist sync: if
+`"Playlist Name (from Spotify)"` already exists in Qobuz, only missing tracks are
+added. If multiple Spotify playlists have the same name, use `--playlist-id`.
+
+### Sync Favorites
 ```bash
 # Sync your Spotify saved tracks to Qobuz favorites
 python sync_favorites.py
@@ -146,8 +159,11 @@ python sync_favorites.py --credentials my_creds.md
 python -m src.sync_service --log-file my_sync.log
 ```
 
-### Retry Failed Syncs (NEW!)
+### Retry Failed Syncs
 ```bash
+# Retry one playlist by exact Spotify playlist name
+python -m src.sync_service --playlist-name "Playlist Name"
+
 # Analyze the latest log file and retry playlists that had errors
 python retry_failed_syncs.py --dry-run true
 
@@ -182,6 +198,12 @@ Options:
       
   --log-file PATH
       Path to log file (default: auto-generated sync_logs/sync_YYYYMMDD_HHMMSS.log)
+
+  --playlist-name NAME
+      Sync only the Spotify playlist with this exact name
+
+  --playlist-id ID
+      Sync only the Spotify playlist with this Spotify playlist ID
 ```
 
 ### Favorite Sync Options
@@ -201,6 +223,10 @@ Options:
 
 ## 📈 What to Expect
 
+The playlist sync service is safe for normal use and repeat runs. By default it
+updates existing Qobuz playlists instead of creating duplicates, then adds only
+tracks that are missing.
+
 ### First Sync
 - **121 playlists synced** (example from real usage)
 - **5,016 tracks matched** (89.25% success rate)
@@ -213,6 +239,7 @@ Options:
 - Finds all 121 existing playlists
 - Checks existing tracks
 - Adds only new tracks since last sync
+- Leaves existing tracks untouched
 - **Much faster** - only processes new tracks
 
 ## 🎯 How Track Matching Works
@@ -272,8 +299,8 @@ open htmlcov/index.html
 
 ### Project Stats
 - **Lines of Code:** ~1,500
-- **Test Coverage:** 92%
-- **Tests:** 88 passing
+- **Test Coverage:** 91%
+- **Tests:** 116 passing
 - **Match Rate:** 89%+ on real playlists
 
 ## 🐛 Troubleshooting

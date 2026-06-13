@@ -132,6 +132,24 @@ python -m src.sync_service --dry-run true
 python -m src.sync_service
 ```
 
+### Option 3: Sync One Playlist
+
+If you only want to sync or retry one playlist, pass its exact Spotify playlist
+name:
+
+```bash
+python -m src.sync_service --playlist-name "Playlist Name"
+```
+
+If you have duplicate Spotify playlist names, use the Spotify playlist ID:
+
+```bash
+python -m src.sync_service --playlist-id 37i9dQZF1DXcBWIGoYBM5M
+```
+
+The destination is still `"Playlist Name (from Spotify)"` in Qobuz, and existing
+tracks are skipped.
+
 ### What Happens During Sync
 
 1. **Authenticates** with Spotify (browser opens, you approve)
@@ -157,7 +175,7 @@ The sync processes each track individually for accuracy.
 
 ## Syncing Favorite Tracks
 
-**NEW!** You can now sync your Spotify "Liked Songs" (saved tracks) to Qobuz favorites! ⭐
+You can also sync your Spotify "Liked Songs" (saved tracks) to Qobuz favorites.
 
 ### What It Does
 
@@ -256,6 +274,15 @@ Just run the same command:
 python sync.py
 ```
 
+For unattended or scripted runs, use the service command directly:
+
+```bash
+python -m src.sync_service
+```
+
+Both commands use duplicate prevention by default. Existing Qobuz playlists with
+the `"(from Spotify)"` suffix are updated in place.
+
 Example output:
 ```
 Found existing playlist with 39 tracks, will add missing tracks only
@@ -334,7 +361,15 @@ python test_token.py
 
 ### Q: Can I sync specific playlists only?
 
-**A:** Not yet. The tool syncs all playlists. You can delete unwanted ones from Qobuz after.
+**A:** Yes, one at a time. Use the exact Spotify playlist name:
+
+```bash
+python -m src.sync_service --playlist-name "Playlist Name"
+```
+
+If multiple playlists have the same name, use `--playlist-id` instead. For bulk
+syncs, `python sync.py` and `python -m src.sync_service` still process all
+playlists.
 
 ### Q: Does it sync my Spotify liked/saved songs?
 
@@ -376,7 +411,7 @@ http://127.0.0.1:8888/callback
 
 ### Q: Can I run this automatically (cron job)?
 
-**A:** Yes! But you'll need to handle Spotify OAuth token refresh. The current version requires browser authentication.
+**A:** Yes. Use `python -m src.sync_service` for non-interactive runs. The first run may require browser authentication; after that, Spotipy can reuse its cached OAuth token until it needs to be refreshed.
 
 ---
 

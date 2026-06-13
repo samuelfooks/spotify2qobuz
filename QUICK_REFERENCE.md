@@ -16,11 +16,17 @@ python sync.py
 # Run sync (direct)
 python -m src.sync_service
 
+# Sync one playlist by exact name
+python -m src.sync_service --playlist-name "Playlist Name"
+
+# Sync one playlist by Spotify playlist ID
+python -m src.sync_service --playlist-id 37i9dQZF1DXcBWIGoYBM5M
+
 # Run sync (force new playlists)
 python -m src.sync_service --update-existing false
 ```
 
-### Favorite Sync (NEW!)
+### Favorite Sync
 ```bash
 # Dry run (see what would be synced)
 python sync_favorites.py --dry-run
@@ -62,7 +68,9 @@ python sync_favorites.py --no-skip-existing
 | Token invalid | `python test_token.py` then get new token |
 | Spotify auth failed | Check redirect URI: `127.0.0.1` not `localhost` |
 | Duplicates created | Delete in Qobuz, next sync updates existing |
+| Need one playlist | `python -m src.sync_service --playlist-name "Playlist Name"` |
 | Slow sync | Normal - ~1 min per playlist |
+| Need automation | Use `python -m src.sync_service` instead of interactive `sync.py` |
 
 ## Documentation
 
@@ -70,6 +78,7 @@ python sync_favorites.py --no-skip-existing
 - **[USER_GUIDE.md](USER_GUIDE.md)** - Step-by-step walkthrough
 - **[GET_TOKEN_INSTRUCTIONS.md](GET_TOKEN_INSTRUCTIONS.md)** - Detailed token extraction
 - **[DUPLICATE_PREVENTION.md](DUPLICATE_PREVENTION.md)** - How duplicates are prevented
+- **[FAVORITE_SYNC.md](FAVORITE_SYNC.md)** - Saved tracks/favorites workflow
 
 ## CLI Options
 
@@ -79,6 +88,8 @@ python sync_favorites.py --no-skip-existing
 --update-existing {true,false}   Prevent duplicates (default: true)
 --credentials PATH               Credentials file (default: credentials.md)
 --log-file PATH                  Log file (default: auto-generated)
+--playlist-name NAME             Sync one playlist by exact Spotify name
+--playlist-id ID                 Sync one playlist by Spotify playlist ID
 ```
 
 ### Favorite Sync
